@@ -1,346 +1,86 @@
-import React, { useState } from 'react';
+import { useEffect } from 'react';
+import Head from 'next/head';
 
-export default function FinanceConsultancy() {
-  const [formData, setFormData] = useState({ name: '', email: '', message: '' });
-  const [submitted, setSubmitted] = useState(false);
+// Static markup and styles from the Livonia Solutions page design.
+const css = "/* Layout: one centered column, rules and spacing do the structuring, not cards.\n   Palette: paper-green neutrals, deep ledger-green accent, brass used only for the single highlight.\n   Type: Newsreader for display, IBM Plex Sans for reading, IBM Plex Mono for labels and figures. */\n:root {\n  --bg: #F5F6F1;\n  --surface: #FFFFFF;\n  --ink: #1A2420;\n  --muted: #56635D;\n  --line: #D6DBD2;\n  --accent: #2C5A4D;\n  --accent-ink: #FFFFFF;\n  --brass: #9C6F25;\n  color-scheme: light;\n}\n@media (prefers-color-scheme: dark) {\n  :root:not([data-theme=\"light\"]) {\n    --bg: #111815;\n    --surface: #18211D;\n    --ink: #E8EEE9;\n    --muted: #9FADA5;\n    --line: #2A3631;\n    --accent: #7DB5A2;\n    --accent-ink: #0F1613;\n    --brass: #D2A253;\n    color-scheme: dark;\n  }\n}\n:root[data-theme=\"dark\"] {\n  --bg: #111815;\n  --surface: #18211D;\n  --ink: #E8EEE9;\n  --muted: #9FADA5;\n  --line: #2A3631;\n  --accent: #7DB5A2;\n  --accent-ink: #0F1613;\n  --brass: #D2A253;\n  color-scheme: dark;\n}\n\n* { box-sizing: border-box; }\nbody {\n  margin: 0;\n  background: var(--bg);\n  color: var(--ink);\n  font-family: \"IBM Plex Sans\", system-ui, -apple-system, \"Segoe UI\", sans-serif;\n  font-size: 16px;\n  line-height: 1.6;\n  padding-inline: max(16px, env(safe-area-inset-left, 0px)) max(16px, env(safe-area-inset-right, 0px));\n  padding-block: 0;\n  overflow-x: hidden;\n}\nimg { max-width: 100%; }\na { color: var(--accent); }\na:focus-visible, button:focus-visible { outline: 2px solid var(--brass); outline-offset: 3px; }\n\n.wrap { max-width: 1040px; margin: 0 auto; min-width: 0; }\n.mono { font-family: \"IBM Plex Mono\", ui-monospace, Menlo, monospace; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }\nh1, h2, h3 { font-family: Newsreader, Georgia, \"Times New Roman\", serif; font-weight: 500; line-height: 1.15; text-wrap: balance; margin: 0; }\nh1 { font-size: clamp(2.2rem, 5.2vw, 3.6rem); letter-spacing: -0.01em; }\nh2 { font-size: clamp(1.7rem, 3.4vw, 2.4rem); }\nh3 { font-size: 1.3rem; }\np { margin: 0; text-wrap: pretty; }\n\n/* Header */\n.top {\n  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px;\n  padding-block: 20px; border-bottom: 1px solid var(--line);\n}\n.brand { font-family: Newsreader, Georgia, serif; font-size: 1.35rem; color: var(--ink); text-decoration: none; font-weight: 600; }\n.nav { display: flex; flex-wrap: wrap; gap: 6px 20px; }\n.nav a { color: var(--muted); text-decoration: none; font-size: 15px; }\n.nav a:hover { color: var(--ink); }\n\n/* Buttons */\n.btn {\n  display: inline-block; padding: 12px 20px; border-radius: 4px; font: inherit; font-weight: 500; font-size: 15px;\n  text-decoration: none; border: 1px solid var(--accent); background: var(--accent); color: var(--accent-ink); cursor: pointer;\n}\n.btn.ghost { background: transparent; color: var(--ink); border-color: var(--line); }\n.btn:hover { filter: brightness(1.06); }\n\n/* Hero */\n.hero { padding-block: clamp(48px, 9vw, 96px) clamp(40px, 6vw, 64px); display: grid; gap: 28px; min-width: 0; }\n.hero .lede { font-size: clamp(1.05rem, 1.8vw, 1.2rem); color: var(--muted); max-width: 60ch; }\n.hero .actions { display: flex; flex-wrap: wrap; gap: 12px; }\n.hero-facts { display: flex; flex-wrap: wrap; gap: 8px 32px; padding-top: 24px; border-top: 1px solid var(--line); }\n.hero-facts div { min-width: 0; }\n.hero-facts strong { display: block; font-family: \"IBM Plex Mono\", monospace; font-weight: 500; font-size: 14px; color: var(--ink); }\n.hero-facts span { color: var(--muted); font-size: 14px; }\n\nsection { padding-block: clamp(40px, 7vw, 72px); border-top: 1px solid var(--line); min-width: 0; }\n.section-head { display: grid; gap: 12px; margin-bottom: 32px; max-width: 70ch; }\n.section-head p { color: var(--muted); }\n\n/* Stage picker */\n.stage-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }\n.stage-tab {\n  font: inherit; font-size: 15px; padding: 10px 16px; border-radius: 4px; cursor: pointer;\n  background: transparent; color: var(--muted); border: 1px solid var(--line);\n}\n.stage-tab[aria-selected=\"true\"] { color: var(--ink); border-color: var(--ink); background: var(--surface); }\n.stage-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid var(--line); background: var(--surface); min-width: 0; }\n.stage-panel > div { padding: 28px; min-width: 0; }\n.stage-panel > div + div { border-left: 1px solid var(--line); }\n.stage-panel ul { margin: 12px 0 0; padding-left: 18px; }\n.stage-panel li { margin-block: 6px; }\n.stage-panel[hidden] { display: none; }\n.stage-next { color: var(--muted); font-size: 15px; margin-top: 16px; }\n\n/* Service groups */\n.groups { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 0; border-top: 1px solid var(--line); min-width: 0; }\n.group { padding: 28px 24px 28px 0; border-bottom: 1px solid var(--line); min-width: 0; }\n.group + .group { padding-left: 24px; border-left: 1px solid var(--line); }\n.group h3 { margin-block: 10px 10px; }\n.group p { color: var(--muted); font-size: 15px; }\n.group ul { margin: 14px 0 0; padding: 0; list-style: none; display: grid; gap: 8px; }\n.group li { font-size: 15px; padding-left: 14px; position: relative; }\n.group li::before { content: \"\"; position: absolute; left: 0; top: 0.7em; width: 6px; height: 1px; background: var(--muted); }\n\n/* AI tracks */\n.tracks { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; min-width: 0; }\n.track { background: var(--surface); border: 1px solid var(--line); padding: 28px; display: grid; gap: 14px; align-content: start; min-width: 0; }\n.track.featured { border-color: var(--accent); }\n.track p { color: var(--muted); font-size: 15px; }\n.track dl { margin: 0; display: grid; gap: 10px; }\n.track dt { font-family: \"IBM Plex Mono\", monospace; font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }\n.track dd { margin: 2px 0 0; font-size: 15px; }\n.compare-wrap { overflow-x: auto; margin-top: 32px; border: 1px solid var(--line); background: var(--surface); }\ntable { width: 100%; border-collapse: collapse; font-size: 15px; min-width: 520px; }\nth, td { text-align: left; padding: 14px 18px; border-bottom: 1px solid var(--line); vertical-align: top; }\nth { font-family: \"IBM Plex Mono\", monospace; font-weight: 500; font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }\ntr:last-child td { border-bottom: 0; }\n.note-brass { color: var(--brass); font-weight: 500; }\n\n/* Progression */\n.path { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0; border: 1px solid var(--line); min-width: 0; }\n.stage-step { padding: 24px; min-width: 0; background: var(--surface); }\n.stage-step + .stage-step { border-left: 1px solid var(--line); }\n.stage-step p { color: var(--muted); font-size: 15px; margin-top: 10px; }\n.stage-step .mono { display: block; margin-bottom: 8px; }\n\n/* How we work */\n.steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 32px; min-width: 0; }\n.steps h3 { margin-block: 8px; font-size: 1.2rem; }\n.steps p { color: var(--muted); font-size: 15px; }\n\n/* Closing */\n.close { display: grid; gap: 20px; justify-items: start; }\n.close p { color: var(--muted); max-width: 60ch; }\nfooter { border-top: 1px solid var(--line); padding-block: 28px 40px; color: var(--muted); font-size: 14px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; }\n\n.about { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr); gap: 48px; align-items: start; min-width: 0; }\n.portrait { margin: 0; max-width: 360px; width: 100%; }\n.portrait-ph { aspect-ratio: 4 / 5; width: 100%; max-width: 100%; background: var(--surface); border: 1px dashed var(--line); display: grid; place-items: center; color: var(--muted); font-family: \"IBM Plex Mono\", monospace; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; }\n.about-copy { display: grid; gap: 16px; min-width: 0; }\n.about-copy p:not(.mono) { font-size: 17px; }\n.contact-list { display: grid; gap: 14px; margin-top: 8px; width: 100%; }\n.contact-item { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 18px 20px; background: var(--surface); border: 1px solid var(--line); min-width: 0; }\n.contact-item .mono { flex-basis: 100%; }\n.contact-item .value { font-size: 18px; overflow-wrap: anywhere; min-width: 0; flex: 1 1 auto; }\n.copy { font: inherit; font-size: 13px; padding: 8px 14px; border: 1px solid var(--line); background: transparent; color: var(--ink); cursor: pointer; border-radius: 4px; }\n@media (max-width: 640px) {\n  .about { grid-template-columns: 1fr; gap: 28px; }\n  .stage-panel { grid-template-columns: 1fr; }\n  .stage-panel > div + div { border-left: 0; border-top: 1px solid var(--line); }\n  .group + .group { padding-left: 0; border-left: 0; }\n  .stage-step + .stage-step { border-left: 0; border-top: 1px solid var(--line); }\n}\n@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }";
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
+const markup = "<header class=\"wrap top\">\n  <a class=\"brand\" href=\"#top\">Livonia Solutions</a>\n  <nav class=\"nav\" aria-label=\"Primary\">\n    <a href=\"#about\">About</a>\n    <a href=\"#services\">Services</a>\n    <a href=\"#ai\">AI tracks</a>\n    <a href=\"#start\">Starting point</a>\n    <a href=\"#approach\">Approach</a>\n    <a href=\"#credentials\">Credentials</a>\n  </nav>\n</header>\n\n<main id=\"top\" class=\"wrap\">\n\n  <div class=\"hero\">\n    <p class=\"mono\">Fractional finance, accounting and growth leadership</p>\n    <h1>Senior finance leadership, sized to the stage your business is in.</h1>\n    <p class=\"lede\">Controllership, CFO judgment, AI-enabled finance and go-to-market support, delivered as one plan. Start with the one thing that hurts most and add capability as the company grows.</p>\n    <div class=\"actions\">\n      <a class=\"btn\" href=\"#start\">Find my starting point</a>\n      <a class=\"btn ghost\" href=\"#ai\">Compare the AI tracks</a>\n    </div>\n    <div class=\"hero-facts\">\n      <div><strong>5 practice areas</strong><span>Combined or used alone</span></div>\n      <div><strong>4 company stages</strong><span>Each with a starting scope</span></div>\n      <div><strong>2 AI tracks</strong><span>Cloud or internal platform</span></div>\n    </div>\n  </div>\n\n  <section id=\"about\" aria-labelledby=\"about-title\">\n    <div class=\"about\">\n      <figure class=\"portrait\">\n        <div class=\"portrait-ph\" role=\"img\" aria-label=\"Portrait photo coming soon\">Photo coming soon</div>\n      </figure>\n      <div class=\"about-copy\">\n        <p class=\"mono\">About</p>\n        <h2 id=\"about-title\">Finance leadership that turns numbers into decisions.</h2>\n        <p>With expertise in Finance and Accounting, 20+ years leading teams and processes across different industries. Delivering a full finance stack encompassing vital accounting functions, including month-end close, reporting, audit and SOX compliance.</p>\n        <p>I translate numbers into information for business owners that lead to action and results. Strong partnership skills aiding stakeholders achieve superior results.</p>\n      </div>\n    </div>\n  </section>\n\n  <section id=\"start\" aria-labelledby=\"start-title\">\n    <div class=\"section-head\">\n      <p class=\"mono\">Where to begin</p>\n      <h2 id=\"start-title\">Pick the stage that sounds most like today.</h2>\n      <p>Each stage has a starting scope and a clear next step. Nothing here is a fixed package. Modules are added as the business asks for them.</p>\n    </div>\n    <div class=\"stage-tabs\" role=\"tablist\" aria-label=\"Company stage\">\n      <button class=\"stage-tab\" role=\"tab\" id=\"tab-launch\" aria-controls=\"panel-launch\" aria-selected=\"true\" data-stage=\"launch\">Launching</button>\n      <button class=\"stage-tab\" role=\"tab\" id=\"tab-build\" aria-controls=\"panel-build\" aria-selected=\"false\" data-stage=\"build\" tabindex=\"-1\">Growing</button>\n      <button class=\"stage-tab\" role=\"tab\" id=\"tab-scale\" aria-controls=\"panel-scale\" aria-selected=\"false\" data-stage=\"scale\" tabindex=\"-1\">Scaling</button>\n      <button class=\"stage-tab\" role=\"tab\" id=\"tab-reset\" aria-controls=\"panel-reset\" aria-selected=\"false\" data-stage=\"reset\" tabindex=\"-1\">Restructuring</button>\n    </div>\n\n    <div class=\"stage-panel\" role=\"tabpanel\" id=\"panel-launch\" aria-labelledby=\"tab-launch\">\n      <div>\n        <p class=\"mono\">Situation</p>\n        <h3 style=\"margin-top:10px\">You have a product, early customers and the founder is doing the books.</h3>\n        <p class=\"stage-next\">Next step: a monthly close you can trust, and cash visibility for the next quarter.</p>\n      </div>\n      <div>\n        <p class=\"mono\">Starting scope</p>\n        <ul>\n          <li>Accounting setup and monthly close (controllership)</li>\n          <li>Bank reconciliation and a clean chart of accounts</li>\n          <li>13-week cash view and runway model</li>\n          <li>Entity, banking and policy setup (new business setup)</li>\n        </ul>\n      </div>\n    </div>\n\n    <div class=\"stage-panel\" role=\"tabpanel\" id=\"panel-build\" aria-labelledby=\"tab-build\" hidden>\n      <div>\n        <p class=\"mono\">Situation</p>\n        <h3 style=\"margin-top:10px\">Revenue is real, hiring has started and investors want monthly numbers.</h3>\n        <p class=\"stage-next\">Next step: an operating rhythm with a KPI pack and pricing you can defend.</p>\n      </div>\n      <div>\n        <p class=\"mono\">Starting scope</p>\n        <ul>\n          <li>Controllership cadence and close calendar</li>\n          <li>Board and investor KPI pack</li>\n          <li>Go-to-market review: pricing, channel and partner options</li>\n          <li>AI close automation on Track A, if data volume justifies it</li>\n        </ul>\n      </div>\n    </div>\n\n    <div class=\"stage-panel\" role=\"tabpanel\" id=\"panel-scale\" aria-labelledby=\"tab-scale\" hidden>\n      <div>\n        <p class=\"mono\">Situation</p>\n        <h3 style=\"margin-top:10px\">Several teams and entities, and more decisions than the leadership team has hours for.</h3>\n        <p class=\"stage-next\">Next step: a planning cycle, treasury structure and a scoped internal AI platform.</p>\n      </div>\n      <div>\n        <p class=\"mono\">Starting scope</p>\n        <ul>\n          <li>Fractional CFO for capital, budgeting and forecasting</li>\n          <li>Treasury and banking structure across entities</li>\n          <li>Partnership and business development programme</li>\n          <li>Scoping for an internal AI platform on Track B</li>\n        </ul>\n      </div>\n    </div>\n\n    <div class=\"stage-panel\" role=\"tabpanel\" id=\"panel-reset\" aria-labelledby=\"tab-reset\" hidden>\n      <div>\n        <p class=\"mono\">Situation</p>\n        <h3 style=\"margin-top:10px\">Cash is tight, or the numbers cannot be relied on yet.</h3>\n        <p class=\"stage-next\">Next step: stabilise the books, protect cash, then rebuild the operating rhythm.</p>\n      </div>\n      <div>\n        <p class=\"mono\">Starting scope</p>\n        <ul>\n          <li>Controllership reset and close remediation</li>\n          <li>Cash control and scenario planning</li>\n          <li>Data and variance audit before any decisions are made on it</li>\n          <li>Lender and stakeholder reporting</li>\n        </ul>\n      </div>\n    </div>\n  </section>\n\n  <section id=\"services\" aria-labelledby=\"services-title\">\n    <div class=\"section-head\">\n      <p class=\"mono\">Services</p>\n      <h2 id=\"services-title\">Five practice areas, one team behind them.</h2>\n      <p>Each area can be bought on its own. Together they cover the finance and growth work a company needs from the first dollar to a sale or IPO.</p>\n    </div>\n    <div class=\"groups\">\n      <article class=\"group\">\n        <p class=\"mono\">Run the numbers</p>\n        <h3>Accounting and controllership</h3>\n        <p>The books, the close and the controls. Accurate every month, audit-ready when needed.</p>\n        <ul>\n          <li>Monthly close and reconciliations</li>\n          <li>Accounts payable and receivable oversight</li>\n          <li>Revenue recognition and accruals</li>\n          <li>Controls design and documentation</li>\n        </ul>\n      </article>\n      <article class=\"group\">\n        <p class=\"mono\">Steer the capital</p>\n        <h3>Finance, treasury and CFO</h3>\n        <p>Leadership-level judgment on cash, capital and the plan that connects them.</p>\n        <ul>\n          <li>Fractional CFO leadership</li>\n          <li>Budgeting, forecasting and variance analysis</li>\n          <li>Treasury, banking and cash management</li>\n          <li>Fundraising, debt and investor reporting</li>\n          <li>Board packs and decision support</li>\n        </ul>\n      </article>\n      <article class=\"group\">\n        <p class=\"mono\">Automate the close</p>\n        <h3>AI for finance and accounting</h3>\n        <p>Two delivery tracks, described in full below. Built on data you own, validated before use.</p>\n        <ul>\n          <li>Cloud-based AI on selected data streams</li>\n          <li>Internal platforms built with partners</li>\n          <li>Reconciliation and reporting automation</li>\n          <li>Decks that build themselves: interactive, board-ready presentations for management, C-suite and investors</li>\n          <li>Data governance and model oversight</li>\n        </ul>\n      </article>\n      <article class=\"group\">\n        <p class=\"mono\">Build the company</p>\n        <h3>New business setup</h3>\n        <p>Getting a new entity running properly from the start, so the finance function does not need rebuilding later.</p>\n        <ul>\n          <li>Entity formation and jurisdiction choice</li>\n          <li>Banking, payments and tax registrations</li>\n          <li>Policies, approval limits and systems selection</li>\n          <li>Launch-quarter operating plan</li>\n        </ul>\n      </article>\n      <article class=\"group\">\n        <p class=\"mono\">Win the market</p>\n        <h3>GTM, product and partnerships</h3>\n        <p>Commercial leadership for teams that need a route to revenue, not just a plan for one.</p>\n        <ul>\n          <li>Go-to-market strategy and pricing</li>\n          <li>Product management and roadmap input</li>\n          <li>Business development and deal structuring</li>\n          <li>Partnership and channel programmes</li>\n        </ul>\n      </article>\n    </div>\n  </section>\n\n  <section id=\"ai\" aria-labelledby=\"ai-title\">\n    <div class=\"section-head\">\n      <p class=\"mono\">AI for finance and accounting</p>\n      <h2 id=\"ai-title\">Two tracks. Choose by where your data lives and how much control you need.</h2>\n      <p>Both tracks start with the same discipline: data is anonymised or scrubbed, validated against source, and formatted so the same process runs every period.</p>\n    </div>\n    <div class=\"tracks\">\n      <article class=\"track featured\">\n        <p class=\"mono\">Track A</p>\n        <h3>Cloud-based AI on selected data streams</h3>\n        <p>We pull defined streams from your systems, cleanse and anonymise them, validate against source totals, and run models on the cloud with outputs formatted for repeat use.</p>\n        <dl>\n          <div><dt>Best for</dt><dd>Companies that want fast results and have clean, mostly standard system data.</dd></div>\n          <div><dt>Typical first use</dt><dd>Close automation, anomaly flags and reporting packs.</dd></div>\n          <div><dt>Data handling</dt><dd>Anonymised and scrubbed before it leaves your environment, with a validation log per run.</dd></div>\n        </dl>\n      </article>\n      <article class=\"track\">\n        <p class=\"mono\">Track B</p>\n        <h3>Internal platform built with partners</h3>\n        <p>A finance platform built inside your environment with specialist partners, designed around your business functions and your controls.</p>\n        <dl>\n          <div><dt>Best for</dt><dd>Companies with sensitive data, complex processes or a need for full ownership.</dd></div>\n          <div><dt>Typical first use</dt><dd>Internal workflows, approvals, reconciliations and cross-entity reporting.</dd></div>\n          <div><dt>Data handling</dt><dd>Stays inside your environment. Partners are scoped and contracted for the build.</dd></div>\n        </dl>\n      </article>\n    </div>\n    <div class=\"compare-wrap\">\n      <table>\n        <thead>\n          <tr><th scope=\"col\">Factor</th><th scope=\"col\">Track A: cloud</th><th scope=\"col\">Track B: internal</th></tr>\n        </thead>\n        <tbody>\n          <tr><th scope=\"row\">Time to first result</th><td>Weeks, on defined streams</td><td>Longer, set during scoping</td></tr>\n          <tr><th scope=\"row\">Upfront cost</th><td>Lower entry scope</td><td>Higher, scoped to the build</td></tr>\n          <tr><th scope=\"row\">Control of data</th><td>Shared, with anonymisation first</td><td>Full, inside your environment</td></tr>\n          <tr><th scope=\"row\">Repeatability</th><td>Standard formats, reused each period</td><td>Built to your own workflows</td></tr>\n          <tr><th scope=\"row\">Can start with</th><td class=\"note-brass\">Yes, in the Growing stage</td><td>Usually in the Scaling stage</td></tr>\n        </tbody>\n      </table>\n    </div>\n  </section>\n\n  <section id=\"modules\" aria-labelledby=\"modules-title\">\n    <div class=\"section-head\">\n      <p class=\"mono\">Growing with the business</p>\n      <h2 id=\"modules-title\">One practice. Scope starts small and expands only when needed.</h2>\n      <p>Engagements are scoped to your budget and needs. Most clients begin with one practice area and add others as the next stage arrives.</p>\n    </div>\n    <div class=\"path\">\n      <div class=\"stage-step\">\n        <span class=\"mono\">Stage 1</span>\n        <h3>Foundation</h3>\n        <p>Close, cash and setup. One practice area, a fixed monthly scope.</p>\n      </div>\n      <div class=\"stage-step\">\n        <span class=\"mono\">Stage 2</span>\n        <h3>Operating rhythm</h3>\n        <p>Add KPI reporting, pricing and go-to-market support, plus AI close on Track A.</p>\n      </div>\n      <div class=\"stage-step\">\n        <span class=\"mono\">Stage 3</span>\n        <h3>Scale</h3>\n        <p>Fractional CFO, treasury across entities and a partnership programme.</p>\n      </div>\n      <div class=\"stage-step\">\n        <span class=\"mono\">Stage 4</span>\n        <h3>Strategic</h3>\n        <p>Capital raising, M&amp;A readiness and an internal AI platform on Track B.</p>\n      </div>\n    </div>\n  </section>\n\n  <section id=\"approach\" aria-labelledby=\"approach-title\">\n    <div class=\"section-head\">\n      <p class=\"mono\">How we work</p>\n      <h2 id=\"approach-title\">Four steps, in the same order every time.</h2>\n    </div>\n    <div class=\"steps\">\n      <div>\n        <p class=\"mono\">Step 1</p>\n        <h3>Diagnose</h3>\n        <p>A short review of the books, cash, systems and commercial plan. You get a written list of what matters most.</p>\n      </div>\n      <div>\n        <p class=\"mono\">Step 2</p>\n        <h3>Stabilise</h3>\n        <p>Fix the close, the cash view and any data you cannot yet trust before building anything new on top of it.</p>\n      </div>\n      <div>\n        <p class=\"mono\">Step 3</p>\n        <h3>Build</h3>\n        <p>Add the modules you need, whether reporting, AI tracks, entity setup or go-to-market work, one at a time.</p>\n      </div>\n      <div>\n        <p class=\"mono\">Step 4</p>\n        <h3>Hand off</h3>\n        <p>Documented processes and trained owners, so the work keeps running when the engagement scope shrinks.</p>\n      </div>\n    </div>\n  </section>\n\n  <section id=\"credentials\" aria-labelledby=\"credentials-title\">\n    <div class=\"section-head\">\n      <p class=\"mono\">Experience and credentials</p>\n      <h2 id=\"credentials-title\">Finance depth, with recent work in applied AI.</h2>\n      <p>Recent completed training in AI-enabled finance, built on a finance and FP&amp;A foundation.</p>\n    </div>\n    <div class=\"groups\">\n      <article class=\"group\">\n        <p class=\"mono\">AI certifications</p>\n        <h3>Accelerator 1 and 2</h3>\n        <p>Completed both programmes in applied AI for business work, provided by AI Finance Club.</p>\n        <ul>\n          <li>Advanced prompting builds in Cowork</li>\n          <li>Repeatable AI workflows for finance and reporting tasks</li>\n        </ul>\n      </article>\n      <article class=\"group\">\n        <p class=\"mono\">Code for finance</p>\n        <h3>Python for Finance and Code</h3>\n        <p>Completed with the AI Finance Club.</p>\n        <ul>\n          <li>Python for financial analysis and reporting</li>\n          <li>Coding with AI assistance for finance use cases</li>\n        </ul>\n      </article>\n      <article class=\"group\">\n        <p class=\"mono\">Financial planning</p>\n        <h3>FP&amp;A Certification</h3>\n        <p>Financial Planning and Analysis certification from Wharton.</p>\n        <ul>\n          <li>Planning, forecasting and variance analysis</li>\n          <li>Management reporting and decision support</li>\n        </ul>\n      </article>\n    </div>\n  </section>\n\n  <section id=\"contact\" aria-labelledby=\"contact-title\">\n    <div class=\"close\">\n      <p class=\"mono\">Get in touch</p>\n      <h2 id=\"contact-title\">Start with one conversation.</h2>\n      <p>Tell us the stage and the one problem that would matter most this quarter. We will reply with a suggested starting scope and a rough sense of budget. No obligation.</p>\n      <div class=\"contact-list\">\n        <div class=\"contact-item\">\n          <span class=\"mono\">Email</span>\n          <span class=\"value\">hello@example.com</span>\n          <button class=\"copy\" type=\"button\" data-copy=\"hello@example.com\">Copy</button>\n        </div>\n        <div class=\"contact-item\">\n          <span class=\"mono\">Phone</span>\n          <span class=\"value\">+1 (555) 000-0000</span>\n          <button class=\"copy\" type=\"button\" data-copy=\"+15550000000\">Copy</button>\n        </div>\n      </div>\n    </div>\n  </section>\n\n</main>\n\n<footer class=\"wrap\">\n  <span>Livonia Solutions Finance. Placeholder name and contact.</span>\n  <span>Engagements are scoped individually. Nothing on this page is investment, legal or tax advice.</span>\n</footer>";
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (formData.name && formData.email && formData.message) {
-      setSubmitted(true);
-      setFormData({ name: '', email: '', message: '' });
-      setTimeout(() => setSubmitted(false), 3000);
-    }
-  };
+export default function LivoniaSite() {
+  useEffect(() => {
+    // Stage picker tabs (keyboard arrows supported).
+    const tabs = Array.prototype.slice.call(document.querySelectorAll('.stage-tab'));
+    const panels = {
+      launch: document.getElementById('panel-launch'),
+      build: document.getElementById('panel-build'),
+      scale: document.getElementById('panel-scale'),
+      reset: document.getElementById('panel-reset'),
+    };
+    const select = (tab, focus) => {
+      tabs.forEach((t) => {
+        const on = t === tab;
+        t.setAttribute('aria-selected', on ? 'true' : 'false');
+        t.tabIndex = on ? 0 : -1;
+        panels[t.dataset.stage].hidden = !on;
+      });
+      if (focus) tab.focus();
+    };
+    const tabHandlers = tabs.map((tab, i) => {
+      const click = () => select(tab, false);
+      const key = (e) => {
+        let n = null;
+        if (e.key === 'ArrowRight') n = tabs[(i + 1) % tabs.length];
+        if (e.key === 'ArrowLeft') n = tabs[(i - 1 + tabs.length) % tabs.length];
+        if (n) { e.preventDefault(); select(n, true); }
+      };
+      tab.addEventListener('click', click);
+      tab.addEventListener('keydown', key);
+      return { tab, click, key };
+    });
 
-  const scrollToSection = (id) => {
-    const element = document.getElementById(id);
-    element?.scrollIntoView({ behavior: 'smooth' });
-  };
+    // Copy buttons for contact details.
+    const copyButtons = Array.prototype.slice.call(document.querySelectorAll('.copy'));
+    const copyHandlers = copyButtons.map((btn) => {
+      const onClick = () => {
+        const text = btn.getAttribute('data-copy');
+        const label = btn.textContent;
+        const done = () => {
+          btn.textContent = 'Copied';
+          setTimeout(() => { btn.textContent = label; }, 1600);
+        };
+        const fail = () => { btn.textContent = 'Select text'; };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(done, fail);
+        } else {
+          fail();
+        }
+      };
+      btn.addEventListener('click', onClick);
+      return { btn, onClick };
+    });
+
+    return () => {
+      tabHandlers.forEach(({ tab, click, key }) => {
+        tab.removeEventListener('click', click);
+        tab.removeEventListener('keydown', key);
+      });
+      copyHandlers.forEach(({ btn, onClick }) => btn.removeEventListener('click', onClick));
+    };
+  }, []);
 
   return (
-    <div style={{ fontFamily: 'var(--font-sans, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)', color: 'var(--text-primary)' }}>
-      <style>{`
-        :root {
-          --surface-0: #f9f9f9;
-          --surface-1: #ffffff;
-          --surface-2: #ffffff;
-          --text-primary: #000000;
-          --text-secondary: #666666;
-          --text-muted: #999999;
-          --text-accent: #0066cc;
-          --text-success: #228b22;
-          --text-warning: #ff8c00;
-          --bg-accent: #e6f0ff;
-          --bg-success: #e8f5e9;
-          --bg-warning: #fff3e0;
-          --border: #e0e0e0;
-          --radius: 8px;
-        }
-        
-        @media (prefers-color-scheme: dark) {
-          :root {
-            --surface-0: #1a1a1a;
-            --surface-1: #2a2a2a;
-            --surface-2: #1f1f1f;
-            --text-primary: #ffffff;
-            --text-secondary: #b0b0b0;
-            --text-muted: #808080;
-            --text-accent: #4d94ff;
-            --text-success: #66bb6a;
-            --text-warning: #ffb74d;
-            --bg-accent: #1a3a4d;
-            --bg-success: #1b5e20;
-            --bg-warning: #4d2600;
-            --border: #404040;
-          }
-        }
-        
-        * {
-          margin: 0;
-          padding: 0;
-          box-sizing: border-box;
-        }
-        
-        body {
-          background: var(--surface-0);
-        }
-      `}</style>
-
-      <nav style={{
-        position: 'sticky',
-        top: 0,
-        background: 'var(--surface-2)',
-        borderBottom: '1px solid var(--border)',
-        zIndex: 100,
-        padding: '1rem 2rem',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center'
-      }}>
-        <div style={{ fontSize: '20px', fontWeight: 500 }}>Andrejs Salmins</div>
-        
-        <div style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
-          <button onClick={() => scrollToSection('services')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-primary)', fontSize: '16px' }}>Services</button>
-          <button onClick={() => scrollToSection('about')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-primary)', fontSize: '16px' }}>About</button>
-          <button onClick={() => scrollToSection('contact')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-primary)', fontSize: '16px' }}>Contact</button>
-        </div>
-      </nav>
-
-      <section id="hero" style={{ padding: '6rem 2rem', textAlign: 'center', background: 'var(--surface-0)' }}>
-        <h1 style={{ fontSize: '48px', fontWeight: 500, marginBottom: '1rem', lineHeight: 1.2 }}>
-          Strategic Finance & Accounting Consulting
-        </h1>
-        <p style={{ fontSize: '18px', color: 'var(--text-secondary)', marginBottom: '2rem', maxWidth: '700px', margin: '0 auto 2rem' }}>
-          FP&A, revenue accounting, finance operations, and AI-powered automation for scaling companies. I help finance teams build better controls, reporting, forecasting, and decision-making infrastructure.
-        </p>
-        <button 
-          onClick={() => scrollToSection('contact')}
-          style={{
-            padding: '12px 28px',
-            background: 'var(--text-primary)',
-            color: 'var(--surface-2)',
-            border: 'none',
-            borderRadius: 'var(--radius)',
-            fontSize: '16px',
-            fontWeight: 500,
-            cursor: 'pointer'
-          }}
-        >
-          Let's talk
-        </button>
-      </section>
-
-      <section id="services" style={{ padding: '4rem 2rem', background: 'var(--surface-2)' }}>
-        <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
-          <h2 style={{ fontSize: '32px', fontWeight: 500, marginBottom: '3rem', textAlign: 'center' }}>Services</h2>
-          
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '2rem' }}>
-            <div style={{
-              background: 'var(--surface-1)',
-              borderRadius: '12px',
-              padding: '2rem',
-              border: '1px solid var(--border)'
-            }}>
-              <div style={{
-                fontSize: '28px',
-                marginBottom: '1rem',
-                color: 'var(--text-accent)'
-              }}>
-                📊
-              </div>
-              <h3 style={{ fontSize: '20px', fontWeight: 500, marginBottom: '1rem' }}>
-                Finance & Accounting Operations
-              </h3>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '1.5rem', lineHeight: 1.6 }}>
-                Month-end close optimization, journal entries, reconciliations, accruals, revenue recognition (ASC 606), accounts payable, controls, and audit readiness. I help build scalable processes and systems that ensure accuracy and compliance.
-              </p>
-              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                <span style={{ fontSize: '12px', background: 'var(--bg-accent)', color: 'var(--text-accent)', padding: '4px 8px', borderRadius: 'var(--radius)' }}>Close processes</span>
-                <span style={{ fontSize: '12px', background: 'var(--bg-accent)', color: 'var(--text-accent)', padding: '4px 8px', borderRadius: 'var(--radius)' }}>ASC 606</span>
-                <span style={{ fontSize: '12px', background: 'var(--bg-accent)', color: 'var(--text-accent)', padding: '4px 8px', borderRadius: 'var(--radius)' }}>Controls</span>
-              </div>
-            </div>
-
-            <div style={{
-              background: 'var(--surface-1)',
-              borderRadius: '12px',
-              padding: '2rem',
-              border: '1px solid var(--border)'
-            }}>
-              <div style={{
-                fontSize: '28px',
-                marginBottom: '1rem',
-                color: 'var(--text-success)'
-              }}>
-                📈
-              </div>
-              <h3 style={{ fontSize: '20px', fontWeight: 500, marginBottom: '1rem' }}>
-                FP&A & Business Analytics
-              </h3>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '1.5rem', lineHeight: 1.6 }}>
-                Budgeting, forecasting, scenario planning, rolling forecasts, KPI dashboards, revenue modeling, variance analysis, and board reporting. I connect accounting accuracy with business decision-making to improve forecasting and strategic planning.
-              </p>
-              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                <span style={{ fontSize: '12px', background: 'var(--bg-success)', color: 'var(--text-success)', padding: '4px 8px', borderRadius: 'var(--radius)' }}>Forecasting</span>
-                <span style={{ fontSize: '12px', background: 'var(--bg-success)', color: 'var(--text-success)', padding: '4px 8px', borderRadius: 'var(--radius)' }}>KPI reporting</span>
-                <span style={{ fontSize: '12px', background: 'var(--bg-success)', color: 'var(--text-success)', padding: '4px 8px', borderRadius: 'var(--radius)' }}>Modeling</span>
-              </div>
-            </div>
-
-            <div style={{
-              background: 'var(--surface-1)',
-              borderRadius: '12px',
-              padding: '2rem',
-              border: '1px solid var(--border)'
-            }}>
-              <div style={{
-                fontSize: '28px',
-                marginBottom: '1rem',
-                color: 'var(--text-warning)'
-              }}>
-                🤖
-              </div>
-              <h3 style={{ fontSize: '20px', fontWeight: 500, marginBottom: '1rem' }}>
-                AI & Finance Automation
-              </h3>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '1.5rem', lineHeight: 1.6 }}>
-                Process automation, systems implementation (NetSuite, Salesforce, RevPro), Excel & Power BI automation, analytics workflows, and AI applications for finance. I design scalable infrastructure that reduces manual work and improves decision speed.
-              </p>
-              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                <span style={{ fontSize: '12px', background: 'var(--bg-warning)', color: 'var(--text-warning)', padding: '4px 8px', borderRadius: 'var(--radius)' }}>Automation</span>
-                <span style={{ fontSize: '12px', background: 'var(--bg-warning)', color: 'var(--text-warning)', padding: '4px 8px', borderRadius: 'var(--radius)' }}>Systems</span>
-                <span style={{ fontSize: '12px', background: 'var(--bg-warning)', color: 'var(--text-warning)', padding: '4px 8px', borderRadius: 'var(--radius)' }}>AI/ML</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section id="about" style={{ padding: '4rem 2rem', background: 'var(--surface-0)' }}>
-        <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-          <h2 style={{ fontSize: '32px', fontWeight: 500, marginBottom: '2rem' }}>About</h2>
-          <p style={{ fontSize: '16px', lineHeight: 1.8, marginBottom: '1.5rem', color: 'var(--text-primary)' }}>
-            I'm a strategic finance and accounting consultant with an MBA and 15+ years of experience across revenue management, FP&A, accounting operations, and finance systems. I work with scaling companies in tech, SaaS, and high-growth industries to build stronger finance foundations.
-          </p>
-          <p style={{ fontSize: '16px', lineHeight: 1.8, marginBottom: '1.5rem', color: 'var(--text-primary)' }}>
-            My expertise spans the full finance stack — from day-to-day accounting accuracy and close processes, through FP&A forecasting and analytics, to systems and process automation with AI. I specialize in revenue recognition (ASC 606), order-to-cash operations, and helping finance teams scale without adding headcount.
-          </p>
-          <p style={{ fontSize: '16px', lineHeight: 1.8, color: 'var(--text-primary)' }}>
-            I work best with companies that are ready to move beyond spreadsheets and build scalable finance infrastructure. Based in San Francisco, I'm available for consulting projects, interim leadership, and advisory work.
-          </p>
-        </div>
-      </section>
-
-      <section id="contact" style={{ padding: '4rem 2rem', background: 'var(--surface-2)' }}>
-        <div style={{ maxWidth: '600px', margin: '0 auto' }}>
-          <h2 style={{ fontSize: '32px', fontWeight: 500, marginBottom: '1rem', textAlign: 'center' }}>Get in touch</h2>
-          <p style={{ fontSize: '16px', color: 'var(--text-secondary)', textAlign: 'center', marginBottom: '2rem' }}>
-            Tell me about your finance challenges. I'll reach out within 24 hours.
-          </p>
-          
-          {submitted && (
-            <div style={{
-              background: 'var(--bg-success)',
-              color: 'var(--text-success)',
-              padding: '1rem',
-              borderRadius: 'var(--radius)',
-              marginBottom: '1.5rem',
-              textAlign: 'center'
-            }}>
-              Thanks for reaching out! I'll get back to you soon.
-            </div>
-          )}
-          
-          <form onSubmit={handleSubmit}>
-            <div style={{ marginBottom: '1.5rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
-                Name
-              </label>
-              <input
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleInputChange}
-                placeholder="Your name"
-                style={{
-                  width: '100%',
-                  padding: '10px 12px',
-                  border: '1px solid var(--border)',
-                  borderRadius: 'var(--radius)',
-                  fontSize: '16px',
-                  fontFamily: 'inherit',
-                  boxSizing: 'border-box',
-                  background: 'var(--surface-0)',
-                  color: 'var(--text-primary)'
-                }}
-              />
-            </div>
-            
-            <div style={{ marginBottom: '1.5rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
-                Email
-              </label>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                placeholder="your@company.com"
-                style={{
-                  width: '100%',
-                  padding: '10px 12px',
-                  border: '1px solid var(--border)',
-                  borderRadius: 'var(--radius)',
-                  fontSize: '16px',
-                  fontFamily: 'inherit',
-                  boxSizing: 'border-box',
-                  background: 'var(--surface-0)',
-                  color: 'var(--text-primary)'
-                }}
-              />
-            </div>
-            
-            <div style={{ marginBottom: '2rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
-                Message
-              </label>
-              <textarea
-                name="message"
-                value={formData.message}
-                onChange={handleInputChange}
-                rows="5"
-                placeholder="What finance challenges are you facing?"
-                style={{
-                  width: '100%',
-                  padding: '10px 12px',
-                  border: '1px solid var(--border)',
-                  borderRadius: 'var(--radius)',
-                  fontSize: '16px',
-                  fontFamily: 'inherit',
-                  boxSizing: 'border-box',
-                  resize: 'vertical',
-                  background: 'var(--surface-0)',
-                  color: 'var(--text-primary)'
-                }}
-              />
-            </div>
-            
-            <button
-              type="submit"
-              style={{
-                width: '100%',
-                padding: '12px',
-                background: 'var(--text-primary)',
-                color: 'var(--surface-2)',
-                border: 'none',
-                borderRadius: 'var(--radius)',
-                fontSize: '16px',
-                fontWeight: 500,
-                cursor: 'pointer'
-              }}
-            >
-              Send message
-            </button>
-          </form>
-        </div>
-      </section>
-
-      <footer style={{
-        padding: '2rem',
-        textAlign: 'center',
-        background: 'var(--surface-0)',
-        borderTop: '1px solid var(--border)',
-        color: 'var(--text-secondary)',
-        fontSize: '14px'
-      }}>
-        <p>© 2024 Andrejs Salmins. Based in San Francisco.</p>
-      </footer>
-    </div>
+    <>
+      <Head>
+        <title>Livonia Solutions</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+        />
+      </Head>
+      <style dangerouslySetInnerHTML={{ __html: css }} />
+      <div dangerouslySetInnerHTML={{ __html: markup }} />
+    </>
   );
 }
